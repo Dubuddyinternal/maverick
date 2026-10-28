@@ -224,6 +224,13 @@ export default function DashboardPage() {
                             <>
                               <b>Approved, ready to publish</b>Publish it on your channel, then click this row and add the
                               published link along with your channel link.
+                              {s.reviewer_note && (
+                                <>
+                                  {' '}
+                                  <b>Note from the team</b>
+                                  {s.reviewer_note}
+                                </>
+                              )}
                             </>
                           )}
                           {st.key === 'rejected' && (
