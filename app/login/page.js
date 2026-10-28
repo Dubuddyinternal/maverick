@@ -7,10 +7,19 @@ import Icon from '@/components/Icon';
 import SiteNav from '@/components/SiteNav';
 import { getSupabase } from '@/lib/supabase';
 import { T } from '@/lib/config';
+import { sayFor } from '@/lib/authMessages';
 
-/* Phone + OTP login. The code is sent and checked by DuBuddy Auth through
-   this site's own server (app/api/login/*), which then signs the creator into
-   Supabase and hands back the session. See lib/server/login.js. */
+/* Phone + OTP login through DuBuddy Auth, as a "public tool": this page asks
+   DuBuddy Auth itself to text the code and to check it (sending our public id,
+   which is not a secret). DuBuddy Auth answers with a signed proof token; our
+   server (app/api/login/session) checks it and signs the creator into Supabase.
+   Settings (Vercel, all public): NEXT_PUBLIC_DUBUDDY_AUTH_CLIENT_ID (dvp_…),
+   NEXT_PUBLIC_DUBUDDY_AUTH_PURPOSE, and NEXT_PUBLIC_TURNSTILE_SITE_KEY if the
+   platform team turned Turnstile on for us. */
+const AUTH = process.env.NEXT_PUBLIC_DUBUDDY_AUTH_URL || 'https://prod-api.dubuddy.in';
+const CLIENT_ID = process.env.NEXT_PUBLIC_DUBUDDY_AUTH_CLIENT_ID;
+const PURPOSE = process.env.NEXT_PUBLIC_DUBUDDY_AUTH_PURPOSE || 'maverick.login';
+const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 export default function LoginPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -20,7 +29,10 @@ export default function LoginPage() {
   const [busy, setBusy] = useState(false);
   const [left, setLeft] = useState(0);
   const [vid, setVid] = useState('');
+  const [guard, setGuard] = useState('');
   const boxes = useRef([]);
+  const tsBox = useRef(null);
+  const tsId = useRef(null);
 
   const phone = '+91' + mob.replace(/\D/g, '');
 
@@ -39,22 +51,77 @@ export default function LoginPage() {
     return () => clearTimeout(t);
   }, [left]);
 
+  /* Cloudflare Turnstile, only if DuBuddy Auth asks us for it: one fresh token per code sent */
+  useEffect(() => {
+    if (!TURNSTILE) return;
+    const draw = () => {
+      if (!window.turnstile || !tsBox.current || tsId.current !== null) return;
+      tsId.current = window.turnstile.render(tsBox.current, {
+        sitekey: TURNSTILE,
+        callback: (t) => setGuard(t),
+        'expired-callback': () => setGuard(''),
+        'error-callback': () => setGuard(''),
+      });
+    };
+    if (window.turnstile) return draw();
+    const sc = document.createElement('script');
+    sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    sc.async = true;
+    sc.onload = draw;
+    document.head.appendChild(sc);
+  }, []);
+
+  function freshGuard() {
+    setGuard('');
+    if (TURNSTILE && window.turnstile && tsId.current !== null) window.turnstile.reset(tsId.current);
+  }
+
+  /* one call to DuBuddy Auth, straight from this page */
+  async function auth(path, body) {
+    try {
+      const res = await fetch(AUTH + '/auth/v2/verify/' + path, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-client-id': CLIENT_ID },
+        body: JSON.stringify(body),
+      });
+      const text = await res.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { ok: false, message: "Couldn't reach the code service (it answered " + res.status + '). Please try again soon.' };
+      }
+    } catch {
+      return { ok: false, message: "Couldn't reach the code service. Check your internet and try again." };
+    }
+  }
+
   async function sendCode() {
     if (mob.replace(/\D/g, '').length !== 10) {
       setErr("That's not 10 digits yet, check and try again.");
       return;
     }
     const sb = getSupabase();
-    if (!sb) {
+    if (!sb || !CLIENT_ID) {
       setErr('Login is not connected yet. Please try again soon.');
+      return;
+    }
+    if (TURNSTILE && !guard) {
+      setErr('One moment: finish the quick security check below, then try again.');
       return;
     }
     setBusy(true);
     setErr('');
-    const r = await post('/api/login/start', { phone });
+    const r = await auth('start', { purpose: PURPOSE, identifier: phone, ...(TURNSTILE ? { guardToken: guard } : {}) });
+    freshGuard();
     setBusy(false);
     if (!r.ok) {
-      setErr(r.message);
+      setErr(
+        r.reason === 'RESEND_TOO_SOON' && r.secondsLeft
+          ? 'Wait ' + r.secondsLeft + ' seconds to resend.'
+          : r.reason === 'GUARD_REFUSED' && r.rule === 'allowed-origins'
+            ? "Login is not connected yet (this site isn't on the code service's allowed list)."
+            : sayFor(r.reason, r.message),
+      );
       return;
     }
     setVid(r.verificationId);
@@ -73,7 +140,18 @@ export default function LoginPage() {
     setBusy(true);
     setErr('');
     const sb = getSupabase();
-    const r = await post('/api/login/check', { verificationId: vid, code: token });
+    const c = await auth('check', { verificationId: vid, code: token });
+    if (!c.ok || !c.verified) {
+      setBusy(false);
+      setErr(sayFor(c.reason, c.message));
+      return;
+    }
+    if (!c.proof || !c.proof.token) {
+      setBusy(false);
+      setErr('Login is not connected yet (the code service sent no proof). Please tell the Maverick team.');
+      return;
+    }
+    const r = await post('/api/login/session', { token: c.proof.token });
     if (!r.ok) {
       setBusy(false);
       setErr(r.message);
@@ -252,6 +330,7 @@ export default function LoginPage() {
                 </button>
               </div>
             )}
+            {TURNSTILE && <div ref={tsBox} style={{ marginTop: '18px' }} />}
             <p className="helptext" style={{ marginTop: '26px' }}>
               The OTP can take up to 30 seconds to arrive on a weak network.
             </p>
