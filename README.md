@@ -31,7 +31,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon / publishable key>
 NEXT_PUBLIC_DUBUDDY_AUTH_CLIENT_ID=dvp_…        # public id, not a secret
 NEXT_PUBLIC_DUBUDDY_AUTH_PURPOSE=maverick.login   # must match the purpose key registered for our tool exactly, or codes fail with UNKNOWN_PURPOSE
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=…                # only if they turned Turnstile on for us
-DUBUDDY_AUTH_TOOL_ID=…                          # our tool id: the proof token's "aud"
+DUBUDDY_AUTH_TOOL_ID=…                          # our tool id: the proof token's "aud" (a wrong value makes login show the right one)
 DUBUDDY_AUTH_JWKS={"keys":[…]}                  # optional: paste of https://prod-api.dubuddy.in/auth/v2/.well-known/jwks.json
 
 # server only, never NEXT_PUBLIC
