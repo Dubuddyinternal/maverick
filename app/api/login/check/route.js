@@ -6,6 +6,15 @@ export const dynamic = 'force-dynamic';
 /* Check the code: { verificationId, code } → { session: { access_token, refresh_token } }.
    The number signed in is the one DuBuddy Auth confirms, never one the browser names. */
 export async function POST(req) {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('[login] check crashed:', e);
+    return NextResponse.json({ ok: false, message: 'Something went wrong on our side (' + ((e && e.message) || 'unknown') + '). Please try again.' }, { status: 500 });
+  }
+}
+
+async function handle(req) {
   const body = await req.json().catch(() => ({}));
   const vid = String(body.verificationId || ''), code = String(body.code || '').replace(/\D/g, '');
   if (!vid || code.length < 4) return NextResponse.json({ ok: false, message: 'Enter all 6 digits.' }, { status: 400 });

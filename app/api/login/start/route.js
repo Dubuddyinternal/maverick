@@ -5,6 +5,15 @@ export const dynamic = 'force-dynamic';
 
 /* Send a login code: { phone } → { verificationId, resendAfter } */
 export async function POST(req) {
+  try {
+    return await handle(req);
+  } catch (e) {
+    console.error('[login] start crashed:', e);
+    return NextResponse.json({ ok: false, message: 'Something went wrong on our side (' + ((e && e.message) || 'unknown') + '). Please try again.' }, { status: 500 });
+  }
+}
+
+async function handle(req) {
   const body = await req.json().catch(() => ({}));
   const phone = normalPhone(body.phone);
   if (!phone) return NextResponse.json({ ok: false, message: "That's not 10 digits yet, check and try again." }, { status: 400 });
