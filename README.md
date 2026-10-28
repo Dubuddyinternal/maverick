@@ -9,7 +9,7 @@ The creator site at **maverick.dubuddy.in**. Built with Next.js (App Router, pla
 | `/` | Home: hero, the two paths, earnings calculator, slabs |
 | `/how-it-works` | Six steps + the Maverick Playbook |
 | `/help` | Help tiles, status meanings, contact |
-| `/login` | Mobile number + OTP (Supabase phone auth) |
+| `/login` | Mobile number + OTP (DuBuddy Auth, then a Supabase session) |
 | `/signup` | "About you" form, first time only |
 | `/dashboard` | Creator overview and My videos (empty for new users) |
 | `/dashboard/submit` | Submit a Drive link |
@@ -26,6 +26,12 @@ Set these in Vercel → Project → Settings → Environment Variables (and in `
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon / publishable key>
+
+# server only, never NEXT_PUBLIC
+SUPABASE_SERVICE_ROLE_KEY=<Supabase → Project Settings → API keys → service_role / secret>
+DUBUDDY_AUTH_SECRET=dvs_…            # the server tool's secret from the platform team
+DUBUDDY_AUTH_PURPOSE=maverick.login  # the purpose key they registered
+MAVERICK_TEST_LOGINS=919205158135=111111   # testing only: skips the SMS; remove before launch
 ```
 
 Without them the public pages still work; login and the dashboard show "not connected yet".
@@ -34,7 +40,7 @@ Without them the public pages still work; login and the dashboard show "not conn
 
 `supabase/maverick_schema.sql` creates the `maverick_creators`, `maverick_submissions` and `maverick_payouts` tables with row-level security. Creators only ever see their own rows. Reviewers are whoever `maverick_is_reviewer()` allows (it returns false until it is wired to the team permission system used by tools.dubuddy.in).
 
-Phone OTP needs an SMS provider (Twilio, MessageBird, Vonage or Textlocal) turned on in Supabase → Authentication → Sign In / Providers → Phone. If the dev team uses a different OTP service, only `sendCode()` and `verify()` in `app/login/page.js` change.
+Login codes are sent and checked by **DuBuddy Auth** (the platform team's phone verification, registered for Maverick as a *server tool*). `app/api/login/start` and `app/api/login/check` call it with the secret; once it confirms the number, `lib/server/login.js` finds or creates that Supabase user (`maverick_auth_user_by_phone`), signs in with a fresh random password and hands the session to the page. Supabase sends no SMS itself; its Phone provider only has to stay switched on.
 
 ## Run locally
 

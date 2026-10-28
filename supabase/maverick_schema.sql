@@ -270,3 +270,12 @@ begin
     alter publication supabase_realtime add table public.maverick_emails;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------- phone login through DuBuddy Auth
+-- The site's server (lib/server/login.js) finds a creator's login by phone
+-- after DuBuddy Auth has verified the number. Only the service key may call it.
+create or replace function public.maverick_auth_user_by_phone(p_phone text)
+returns uuid language sql stable security definer set search_path = ''
+as $$ select id from auth.users where phone = p_phone limit 1; $$;
+revoke all on function public.maverick_auth_user_by_phone(text) from public, anon, authenticated;
+grant execute on function public.maverick_auth_user_by_phone(text) to service_role;

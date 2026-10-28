@@ -8,8 +8,9 @@ import SiteNav from '@/components/SiteNav';
 import { getSupabase } from '@/lib/supabase';
 import { T } from '@/lib/config';
 
-/* Phone + OTP login through Supabase Auth.
-   If your team uses a different OTP provider, only sendCode() and verify() change. */
+/* Phone + OTP login. The code is sent and checked by DuBuddy Auth through
+   this site's own server (app/api/login/*), which then signs the creator into
+   Supabase and hands back the session. See lib/server/login.js. */
 export default function LoginPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -18,6 +19,7 @@ export default function LoginPage() {
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [left, setLeft] = useState(0);
+  const [vid, setVid] = useState('');
   const boxes = useRef([]);
 
   const phone = '+91' + mob.replace(/\D/g, '');
@@ -49,15 +51,16 @@ export default function LoginPage() {
     }
     setBusy(true);
     setErr('');
-    const { error } = await sb.auth.signInWithOtp({ phone });
+    const r = await post('/api/login/start', { phone });
     setBusy(false);
-    if (error) {
-      setErr(error.message);
+    if (!r.ok) {
+      setErr(r.message);
       return;
     }
+    setVid(r.verificationId);
     setStep(2);
     setOtp(['', '', '', '', '', '']);
-    setLeft(30);
+    setLeft(r.resendAfter ? Math.max(0, Math.ceil((r.resendAfter - Date.now()) / 1000)) : 30);
     setTimeout(() => boxes.current[0] && boxes.current[0].focus(), 50);
   }
 
@@ -70,14 +73,30 @@ export default function LoginPage() {
     setBusy(true);
     setErr('');
     const sb = getSupabase();
-    const { data, error } = await sb.auth.verifyOtp({ phone, token, type: 'sms' });
+    const r = await post('/api/login/check', { verificationId: vid, code: token });
+    if (!r.ok) {
+      setBusy(false);
+      setErr(r.message);
+      return;
+    }
+    const { data, error } = await sb.auth.setSession(r.session);
     if (error) {
       setBusy(false);
-      setErr('Wrong code. Check it, or resend a fresh one.');
+      setErr("Couldn't sign you in. Please try again.");
       return;
     }
     const { data: creator } = await sb.from('maverick_creators').select('id').eq('id', data.user.id).maybeSingle();
     router.replace(creator ? '/dashboard' : '/signup');
+  }
+
+  async function post(url, body) {
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+      const j = await res.json().catch(() => ({}));
+      return j.ok ? j : { ok: false, message: j.message || 'Something went wrong. Please try again.' };
+    } catch {
+      return { ok: false, message: 'No connection. Check your internet and try again.' };
+    }
   }
 
   function typeDigit(i, v) {
