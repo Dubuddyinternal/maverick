@@ -31,7 +31,6 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon / publishable key>
 SUPABASE_SERVICE_ROLE_KEY=<Supabase → Project Settings → API keys → service_role / secret>
 DUBUDDY_AUTH_SECRET=dvs_…            # the server tool's secret from the platform team
 DUBUDDY_AUTH_PURPOSE=maverick.login  # the purpose key they registered
-MAVERICK_TEST_LOGINS=919205158135=111111   # testing only: skips the SMS; remove before launch
 ```
 
 Without them the public pages still work; login and the dashboard show "not connected yet".
