@@ -240,3 +240,26 @@ begin
     end if;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------- emails to creators
+-- Every email the maverick-mail Edge Function sends (from maverick@dubuddy.in)
+-- is logged here; the admin space shows it in its ✉️ Emails tab. Only the
+-- function writes (with the service key); the team reads; creators never.
+create table if not exists public.maverick_emails (
+  id            uuid primary key default gen_random_uuid(),
+  submission_id uuid references public.maverick_submissions (id) on delete set null,
+  creator_id    uuid references public.maverick_creators (id) on delete set null,
+  kind          text not null,
+  to_email      text,
+  subject       text,
+  status        text not null check (status in ('sent', 'failed', 'skipped')),
+  error         text,
+  sent_by       uuid references auth.users (id),
+  created_at    timestamptz not null default now()
+);
+create index if not exists maverick_emails_created_idx on public.maverick_emails (created_at desc);
+create index if not exists maverick_emails_submission_idx on public.maverick_emails (submission_id, kind, created_at desc);
+alter table public.maverick_emails enable row level security;
+drop policy if exists "maverick: team reads emails" on public.maverick_emails;
+create policy "maverick: team reads emails" on public.maverick_emails
+  for select to authenticated using (public.maverick_is_staff());
