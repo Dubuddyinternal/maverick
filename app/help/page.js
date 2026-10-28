@@ -1,7 +1,7 @@
 import SiteNav from '@/components/SiteNav';
 import SiteFooter from '@/components/SiteFooter';
 import HelpTiles from '@/components/HelpTiles';
-import { T } from '@/lib/config';
+import { CFG, T } from '@/lib/config';
 
 export const metadata = { title: 'Help · Maverick by Dubuddy' };
 
@@ -103,10 +103,7 @@ export default function HelpPage() {
                 Email
               </span>
               <span className="md" style={{ fontWeight: "600" }}>
-                support@dubuddy.in{" "}
-                <span className="tag ph">
-                  email to confirm
-                </span>
+                <a href={`mailto:${CFG.supportEmail}`}>{CFG.supportEmail}</a>
               </span>
             </div>
             <div className="row" style={{ background: "var(--tint)", borderRadius: "16px", padding: "18px 20px", height: "100%" }}>
