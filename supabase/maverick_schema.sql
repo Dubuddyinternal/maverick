@@ -263,3 +263,10 @@ alter table public.maverick_emails enable row level security;
 drop policy if exists "maverick: team reads emails" on public.maverick_emails;
 create policy "maverick: team reads emails" on public.maverick_emails
   for select to authenticated using (public.maverick_is_staff());
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'maverick_emails') then
+    alter publication supabase_realtime add table public.maverick_emails;
+  end if;
+end $$;
