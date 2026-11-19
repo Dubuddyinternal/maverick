@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSignedIn } from '@/lib/useSignedIn';
 
 const LINKS = [
   { href: '/', label: 'Home' },
@@ -12,6 +13,7 @@ const LINKS = [
 
 export default function SiteNav() {
   const path = usePathname();
+  const signedIn = useSignedIn();
   return (
     <div className="nav">
       <Link href="/" className="logo">
@@ -28,11 +30,13 @@ export default function SiteNav() {
         ))}
       </div>
       <div className="right">
-        <Link href="/login" className="linkbtn">
-          Log in
-        </Link>
-        <Link href="/login" className="btn sm">
-          Start earning
+        {signedIn === false && (
+          <Link href="/login" className="linkbtn">
+            Log in
+          </Link>
+        )}
+        <Link href={signedIn ? '/dashboard' : '/login'} className="btn sm">
+          {signedIn ? 'My dashboard' : 'Start earning'}
         </Link>
       </div>
     </div>

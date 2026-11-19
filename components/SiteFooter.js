@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { CFG } from '@/lib/config';
+import { useSignedIn } from '@/lib/useSignedIn';
 
 export default function SiteFooter() {
+  const signedIn = useSignedIn();
   return (
     <div className="foot orange">
       <div className="fbrand">
@@ -20,8 +24,8 @@ export default function SiteFooter() {
         </div>
         <div className="fcol">
           <b>Creators</b>
-          <Link href="/login">Log in</Link>
-          <Link href="/login">Start earning</Link>
+          {signedIn === false && <Link href="/login">Log in</Link>}
+          <Link href={signedIn ? '/dashboard' : '/login'}>{signedIn ? 'My dashboard' : 'Start earning'}</Link>
           <Link href="/how-it-works">Demo videos</Link>
           <a href={`mailto:${CFG.supportEmail}`}>{CFG.supportEmail}</a>
         </div>
