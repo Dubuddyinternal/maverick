@@ -243,7 +243,7 @@ export default function HowItWorksPage() {
               Two compulsory things, and a few you can cover if they fit.
             </p>
           </div>
-          <div className="earnrow" style={{ alignItems: "start" }}>
+          <div>
             <div className="card" style={{ padding: "38px 42px" }}>
               <div className="needrow">
                 <span className="num">
@@ -311,15 +311,6 @@ export default function HowItWorksPage() {
                 </div>
               </div>
             </div>
-            <div className="card" style={{ padding: "32px", background: "var(--tint)" }}>
-              <h4 style={{ fontSize: "24px" }}>
-                Know about Dubuddy
-              </h4>
-              <p className="sm mut" style={{ marginTop: "6px" }}>
-                Our mission, vision and product in one short video. Worth watching before you film.
-              </p>
-              <div className="videoslot" />
-            </div>
           </div>
         </div>
       </div>
@@ -356,20 +347,19 @@ export default function HowItWorksPage() {
             </div>
             <div className="vtile">
               <div className="th">
-                <svg className="ico" viewBox="0 0 100 100" style={{ width: "60px", height: "60px", color: "var(--blue)" }}>
-                  <use href="#d-play" />
-                </svg>
-                <span className="len">
-                  0:45
-                </span>
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/R8dZRC2E6dw?rel=0&playsinline=1"
+                  title="Get CUET Mocks + PYQs at ONLY ₹1"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                />
               </div>
               <div className="cap2">
                 <h4>
-                  Screen-record a PYQ
+                  Get CUET Mocks + PYQs at ONLY ₹1
                 </h4>
-                <p>
-                  Solving a 2024 shift-2 paper
-                </p>
               </div>
             </div>
             <div className="vtile">
