@@ -25,6 +25,7 @@ export default function SubmitPage() {
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
   const [platform, setPlatform] = useState('instagram');
+  const [otherName, setOtherName] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -36,7 +37,9 @@ export default function SubmitPage() {
     const v = link.trim();
     const problem = !title.trim()
       ? 'Give your video a short name so you can find it later.'
-      : linkProblem(v, submissions.map((s) => (s.drive_link || '').toLowerCase()));
+      : platform === 'other' && !otherName.trim()
+        ? 'Tell us which platform you will post it on.'
+        : linkProblem(v, submissions.map((s) => (s.drive_link || '').toLowerCase()));
     if (problem) {
       setErr(problem);
       return;
@@ -45,7 +48,13 @@ export default function SubmitPage() {
     setErr('');
     const { error } = await getSupabase()
       .from('maverick_submissions')
-      .insert({ creator_id: user.id, title: title.trim(), drive_link: v, platform });
+      .insert({
+        creator_id: user.id,
+        title: title.trim(),
+        drive_link: v,
+        platform,
+        platform_name: platform === 'other' ? otherName.trim() : null,
+      });
     setBusy(false);
     if (error) {
       setErr(error.message);
@@ -99,6 +108,21 @@ export default function SubmitPage() {
                 </button>
               ))}
             </div>
+            {platform === 'other' && (
+              <input
+                className="inp"
+                style={{ marginTop: '14px' }}
+                maxLength={40}
+                placeholder="Which platform? e.g. Moj, Snapchat, Josh"
+                aria-label="Platform name"
+                value={otherName}
+                onChange={(e) => {
+                  setOtherName(e.target.value);
+                  setErr('');
+                }}
+                autoFocus
+              />
+            )}
           </div>
 
           {err && (

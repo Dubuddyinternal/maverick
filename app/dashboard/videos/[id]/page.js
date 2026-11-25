@@ -111,7 +111,7 @@ export default function VideoPage() {
   const published = sub.published_at;
   const head = (
     <p className="lead" style={{ marginTop: '6px' }}>
-      {platformLabel(sub.platform)} · submitted {fmtShort(sent)}
+      {platformLabel(sub.platform, sub.platform_name)} · submitted {fmtShort(sent)}
     </p>
   );
 

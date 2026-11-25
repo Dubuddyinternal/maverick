@@ -192,7 +192,7 @@ export default function DashboardPage() {
                     </td>
                     <td>{ext(s.drive_link, 'Drive link')}</td>
                     {s.published_link ? <td>{ext(s.published_link, 'Published link')}</td> : NOT_YET}
-                    {live ? <td>{platformLabel(s.platform)}</td> : NOT_YET}
+                    {live ? <td>{platformLabel(s.platform, s.platform_name)}</td> : NOT_YET}
                     {s.channel_link ? <td>{ext(s.channel_link, 'Channel')}</td> : NOT_YET}
                     <td className="tnum">{fmtDate(s.created_at)}</td>
                     {live ? <td className="tnum">{fmtDate(s.published_at)}</td> : NOT_YET}

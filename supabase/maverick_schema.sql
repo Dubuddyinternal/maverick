@@ -51,6 +51,8 @@ create table if not exists public.maverick_submissions (
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now()
 );
+-- the platform's name when the creator picks "Other" (e.g. Moj, Snapchat)
+alter table public.maverick_submissions add column if not exists platform_name text check (char_length(platform_name) <= 40);
 create index if not exists maverick_submissions_creator_idx on public.maverick_submissions (creator_id, created_at desc);
 create index if not exists maverick_submissions_status_idx on public.maverick_submissions (status, created_at desc);
 
@@ -130,6 +132,7 @@ begin
   end if;
 
   if tg_op = 'INSERT' then
+    new.platform_name := case when new.platform = 'other' then nullif(btrim(new.platform_name), '') else null end;
     new.status := 'in_review';
     new.reviewer_note := null;
     new.creator_reply := null;
@@ -149,6 +152,7 @@ begin
   new.creator_id := old.creator_id;
   new.title := old.title;
   new.platform := old.platform;
+  new.platform_name := old.platform_name;
   new.drive_link := old.drive_link;
   new.status := old.status;
   new.reviewer_note := old.reviewer_note;
