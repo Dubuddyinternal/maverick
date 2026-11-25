@@ -283,3 +283,31 @@ returns uuid language sql stable security definer set search_path = ''
 as $$ select id from auth.users where phone = p_phone limit 1; $$;
 revoke all on function public.maverick_auth_user_by_phone(text) from public, anon, authenticated;
 grant execute on function public.maverick_auth_user_by_phone(text) to service_role;
+
+-- ---------------------------------------------------------------- the team's creator list
+-- Everyone who has logged in with a phone (DuBuddy Auth / Supabase phone users), with
+-- their Maverick profile if they made one. Returns nothing unless the caller is on the
+-- Maverick team. Used by the admin space's 👥 Creators tab.
+create or replace function public.maverick_people()
+returns table (id uuid, phone text, joined_at timestamptz, last_login_at timestamptz, full_name text, email text,
+               upi_id text, youtube_handle text, instagram_handle text, has_profile boolean)
+language sql stable security definer set search_path = ''
+as $$
+  select u.id, coalesce(nullif(c.phone, ''), u.phone), u.created_at, u.last_sign_in_at,
+         c.full_name, c.email, c.upi_id, c.youtube_handle, c.instagram_handle, c.id is not null
+    from auth.users u
+    left join public.maverick_creators c on c.id = u.id
+   where public.maverick_is_staff()
+     and (coalesce(u.phone, '') <> '' or c.id is not null)
+   order by u.created_at desc
+$$;
+revoke all on function public.maverick_people() from public, anon;
+grant execute on function public.maverick_people() to authenticated;
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'maverick_creators') then
+    alter publication supabase_realtime add table public.maverick_creators;
+  end if;
+end $$;
