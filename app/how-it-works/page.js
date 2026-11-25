@@ -2,6 +2,8 @@ import Link from 'next/link';
 import SiteNav from '@/components/SiteNav';
 import SiteFooter from '@/components/SiteFooter';
 import StepsTimeline from '@/components/StepsTimeline';
+import DemoDoodle from '@/components/DemoDoodle';
+import StoryRoad from '@/components/StoryRoad';
 import { T } from '@/lib/config';
 
 export const metadata = { title: 'How it works · Maverick by Dubuddy' };
@@ -25,7 +27,7 @@ export default function HowItWorksPage() {
       <div className="sec" style={{ paddingTop: "10px", paddingBottom: "18px" }}>
         <StepsTimeline />
       </div>
-      <div className="sec center" style={{ paddingTop: "28px", paddingBottom: "0" }}>
+      <div id="rulebook" className="sec center" style={{ paddingTop: "28px", paddingBottom: "0" }}>
         <span className="flowstep" style={{ justifyContent: "center" }}>
           <i>
             ✎
@@ -33,7 +35,7 @@ export default function HowItWorksPage() {
           the rulebook
         </span>
         <h2 style={{ fontSize: "52px" }}>
-          The Maverick Playbook
+          The Maverick Rulebook
         </h2>
         <p className="lead" style={{ margin: "10px auto 0", maxWidth: "660px", fontSize: "22px" }}>
           Everything you need to make a video we can approve.
@@ -330,7 +332,9 @@ export default function HowItWorksPage() {
               Made by us. Watch one, copy the shape.
             </p>
           </div>
-          <div className="vids two">
+          <div className="demorow">
+            <DemoDoodle />
+          <div className="vids three">
             <div className="vtile">
               <div className="th">
                 <iframe
@@ -368,10 +372,28 @@ export default function HowItWorksPage() {
                 </h4>
               </div>
             </div>
+            <div className="vtile soon">
+              <div className="th">
+                <div>
+                  <svg viewBox="0 0 64 64" aria-hidden="true">
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="var(--ink)" strokeWidth="4" />
+                    <path d="M32 18v15l10 6" fill="none" stroke="var(--coral)" strokeWidth="4" strokeLinecap="round" />
+                  </svg>
+                  <span className="hand">coming soon</span>
+                </div>
+              </div>
+              <div className="cap2">
+                <h4>
+                  More demo videos coming soon
+                </h4>
+              </div>
+            </div>
+          </div>
           </div>
         </div>
       </div>
       <div className="endcta">
+        <StoryRoad />
         <div className="wrap">
           <svg className="dblogo lg2" viewBox="0 0 164 40">
             <use href="#dblogo" />

@@ -7,8 +7,8 @@ import { T } from '@/lib/config';
 const STEPS = [
   { icon: 'd-person', color: 'var(--coral)', title: 'Sign up', sub: 'About 20 seconds', label: 'About signing up',
     body: 'Mobile number, OTP, then four details: your name, email, YouTube handle and Instagram handle. Nothing to copy, nothing to remember.' },
-  { icon: 'd-paper', color: 'var(--ink)', title: 'Read the rulebook', sub: 'Five minutes, once', label: 'About the rulebook',
-    body: "It's the Maverick Playbook, right below on this page. Almost every rejection comes from skipping it." },
+  { icon: 'd-paper', color: 'var(--ink)', href: '#rulebook', title: 'Read the rulebook', sub: 'Five minutes, once', label: 'About the rulebook',
+    body: "It's the Maverick Rulebook, right below on this page. Almost every rejection comes from skipping it." },
   { icon: 'd-cam', color: 'var(--blue)', title: 'Film the video', sub: 'Any day, any phone', label: 'About filming',
     body: 'Your phone is enough. Talk about your own prep in your own words, and say Dubuddy out loud while you are at it.' },
   { icon: 'd-link', color: 'var(--ink)', title: 'Upload the Drive link', sub: 'In your dashboard', label: 'About uploading',
@@ -37,10 +37,22 @@ export default function StepsTimeline() {
           >
             i
           </button>
-          <div className="circle">
-            <Icon name={s.icon} style={{ color: s.color }} />
-          </div>
-          <h4>{s.title}</h4>
+          {s.href ? (
+            /* "Read the rulebook" takes you to the rulebook further down the page */
+            <a href={s.href} className="steplink">
+              <div className="circle">
+                <Icon name={s.icon} style={{ color: s.color }} />
+              </div>
+              <h4>{s.title}</h4>
+            </a>
+          ) : (
+            <>
+              <div className="circle">
+                <Icon name={s.icon} style={{ color: s.color }} />
+              </div>
+              <h4>{s.title}</h4>
+            </>
+          )}
           <p>{s.sub}</p>
           {open === i && (
             <div className="infopop">

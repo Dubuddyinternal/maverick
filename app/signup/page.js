@@ -118,7 +118,7 @@ export default function SignupPage() {
             <Icon name="d-paper" style={{ color: 'var(--blue)' }} />
             <div>
               <b>Next: how it works.</b>
-              <p>We walk you through the six steps and the Playbook, then you can open your dashboard from there.</p>
+              <p>We walk you through the six steps and the Rulebook, then you can open your dashboard from there.</p>
             </div>
           </div>
         </div>
