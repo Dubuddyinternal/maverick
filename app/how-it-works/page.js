@@ -336,16 +336,18 @@ export default function HowItWorksPage() {
           <div className="vids">
             <div className="vtile">
               <div className="th">
-                <svg className="ico" viewBox="0 0 100 100" style={{ width: "60px", height: "60px", color: "var(--coral)" }}>
-                  <use href="#d-play" />
-                </svg>
-                <span className="len">
-                  0:38
-                </span>
+                <iframe
+                  src="https://www.youtube-nocookie.com/embed/5bIe18qZ9Ug?rel=0&playsinline=1"
+                  title="Score Reveal, Comment Your Scores"
+                  loading="lazy"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: 0 }}
+                />
               </div>
               <div className="cap2">
                 <h4>
-                  Score reveal, no face
+                  Score Reveal, Comment Your Scores
                 </h4>
                 <p>
                   Result screenshot, hands, voiceover
