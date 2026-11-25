@@ -307,6 +307,12 @@ export default function HowItWorksPage() {
                         Product facts you can mention: all PYQs for every shift, every year and every subject, mock tests, chapter-wise PYQs, PDFs of repeated questions, and full-length repeated-question sets.
                       </span>
                     </li>
+                    <li>
+                      <i />
+                      <span>
+                        Dubuddy&apos;s CUET mock tests: practise full mocks along with PYQs, starting at just ₹1.
+                      </span>
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -324,7 +330,7 @@ export default function HowItWorksPage() {
               Made by us. Watch one, copy the shape.
             </p>
           </div>
-          <div className="vids">
+          <div className="vids two">
             <div className="vtile">
               <div className="th">
                 <iframe
@@ -360,42 +366,6 @@ export default function HowItWorksPage() {
                 <h4>
                   Get CUET Mocks + PYQs at ONLY ₹1
                 </h4>
-              </div>
-            </div>
-            <div className="vtile">
-              <div className="th">
-                <svg className="ico" viewBox="0 0 100 100" style={{ width: "60px", height: "60px", color: "var(--yes)" }}>
-                  <use href="#d-play" />
-                </svg>
-                <span className="len">
-                  0:52
-                </span>
-              </div>
-              <div className="cap2">
-                <h4>
-                  Day in my CUET life
-                </h4>
-                <p>
-                  Four clips, one line about Dubuddy
-                </p>
-              </div>
-            </div>
-            <div className="vtile">
-              <div className="th">
-                <svg className="ico" viewBox="0 0 100 100" style={{ width: "60px", height: "60px", color: "var(--ink)" }}>
-                  <use href="#d-play" />
-                </svg>
-                <span className="len">
-                  0:31
-                </span>
-              </div>
-              <div className="cap2">
-                <h4>
-                  Where the link goes
-                </h4>
-                <p>
-                  Description, bio and pinned comment
-                </p>
               </div>
             </div>
           </div>

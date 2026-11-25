@@ -151,3 +151,9 @@ button:disabled {
   .bellpanel { width: min(330px, calc(100vw - 32px)); right: -60px; }
   .steps { flex-wrap: wrap; }
 }
+
+/* demo videos while there are only two: same tile size, lined up under the right-aligned heading */
+.vids.two { grid-template-columns: repeat(2, minmax(0, 300px)); justify-content: end; }
+@media (max-width: 760px) {
+  .vids.two { grid-template-columns: 1fr; justify-content: stretch; }
+}
