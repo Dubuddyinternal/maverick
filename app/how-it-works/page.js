@@ -322,7 +322,7 @@ export default function HowItWorksPage() {
           </div>
         </div>
       </div>
-      <div className="flow right wide">
+      <div id="demo-videos" className="flow right wide" style={{ scrollMarginTop: "24px" }}>
         <div className="wrap">
           <div className="flowhead">
             <h2>
