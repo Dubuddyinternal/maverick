@@ -21,7 +21,7 @@ function linkProblem(v, seen) {
 
 export default function SubmitPage() {
   const router = useRouter();
-  const { user, submissions, reload } = useDash();
+  const { user, submissions, reload, profileMissing, openProfile } = useDash();
   const [title, setTitle] = useState('');
   const [link, setLink] = useState('');
   const [platform, setPlatform] = useState('instagram');
@@ -29,6 +29,10 @@ export default function SubmitPage() {
   const [busy, setBusy] = useState(false);
 
   async function submit() {
+    if (profileMissing) {
+      openProfile();
+      return;
+    }
     const v = link.trim();
     const problem = !title.trim()
       ? 'Give your video a short name so you can find it later.'

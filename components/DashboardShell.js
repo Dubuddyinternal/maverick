@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Icon from './Icon';
+import { ProfileModal, ProfilePrompt, profileMissing } from './ProfileModal';
 import SiteNav from './SiteNav';
 import SiteFooter from './SiteFooter';
 import { getSupabase } from '@/lib/supabase';
@@ -100,6 +101,7 @@ export default function DashboardShell({ children }) {
   const router = useRouter();
   const path = usePathname();
   const [st, setSt] = useState({ loading: true });
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const load = useCallback(async () => {
     const sb = getSupabase();
@@ -147,6 +149,7 @@ export default function DashboardShell({ children }) {
 
   const pending = st.payouts.filter((x) => x.status === 'pending').reduce((a, x) => a + Number(x.amount || 0), 0);
   const name = st.creator.full_name || '';
+  const missing = profileMissing(st.creator);
 
   async function logout() {
     await getSupabase().auth.signOut();
@@ -154,7 +157,7 @@ export default function DashboardShell({ children }) {
   }
 
   return (
-    <DashCtx.Provider value={{ ...st, reload: load }}>
+    <DashCtx.Provider value={{ ...st, reload: load, profileMissing: missing, openProfile: () => setProfileOpen(true) }}>
       <div className="page">
         <div className="nav">
           <Link href="/" className="logo">
@@ -178,7 +181,9 @@ export default function DashboardShell({ children }) {
               <span className="tnum">{money(pending)}</span>
               <span className="plab">pending</span>
             </div>
-            <div className="avatar">{(name[0] || 'M').toUpperCase()}</div>
+            <button className="avatar" onClick={() => setProfileOpen(true)} aria-label="My profile" title="My profile">
+              {(name[0] || 'M').toUpperCase()}
+            </button>
           </div>
         </div>
         <div className="dash">
@@ -210,6 +215,19 @@ export default function DashboardShell({ children }) {
           </div>
         </div>
       </div>
+      {/* name + email are compulsory: until they're in, this stays up and opens the profile */}
+      {missing && !profileOpen && <ProfilePrompt onAdd={() => setProfileOpen(true)} />}
+      {profileOpen && (
+        <ProfileModal
+          creator={st.creator}
+          user={st.user}
+          onClose={() => setProfileOpen(false)}
+          onSaved={async () => {
+            await load();
+            setProfileOpen(false);
+          }}
+        />
+      )}
     </DashCtx.Provider>
   );
 }

@@ -229,3 +229,16 @@ html { scroll-behavior: smooth; }
   .vids.three .cap2 { height: auto; }
   .sr { margin: -40px -16px 20px; width: calc(100% + 32px); }
 }
+
+/* my profile pop-up + the "add your name and email" prompt (components/ProfileModal.js) */
+button.avatar { cursor: pointer; font: inherit; font-weight: 800; padding: 0; }
+button.avatar:hover { transform: translateY(-1px); box-shadow: 0 3px 0 var(--ink); }
+.pm-back { position: fixed; inset: 0; background: rgba(15, 15, 15, .55); display: grid; place-items: center; z-index: 100; padding: 16px; }
+.pm { position: relative; width: 460px; max-width: 100%; max-height: 92vh; overflow-y: auto; background: var(--white); border: 3px solid var(--ink); border-radius: 24px; padding: 34px 32px 30px; box-shadow: 0 30px 70px rgba(0, 0, 0, .3); }
+.pm h3 { font-size: 28px; }
+.pm-sub { color: #6B615C; font-size: 15px; margin: 6px 0 22px; }
+.pm-x { position: absolute; top: 16px; right: 16px; width: 34px; height: 34px; border-radius: 50%; background: var(--white); border: 2px solid var(--ink); display: grid; place-items: center; font-weight: 700; cursor: pointer; }
+.pm-note { display: block; font-size: 13px; color: #8A7F7A; margin-top: 6px; }
+.pm .field { margin-bottom: 18px; }
+.pm-prompt { text-align: center; }
+.pm-bell { width: 64px; height: 64px; border-radius: 50%; background: var(--tint); border: 2px solid var(--ink); display: grid; place-items: center; margin: 0 auto 16px; }
