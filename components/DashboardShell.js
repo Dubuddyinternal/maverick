@@ -7,7 +7,7 @@ import Icon from './Icon';
 import { ProfileModal, ProfilePrompt, profileMissing } from './ProfileModal';
 import SiteNav from './SiteNav';
 import SiteFooter from './SiteFooter';
-import { getSupabase } from '@/lib/supabase';
+import { getSupabase, getViewerSupabase } from '@/lib/supabase';
 import { money } from '@/lib/config';
 
 const DashCtx = createContext(null);
@@ -60,7 +60,7 @@ function Gate({ notConfigured }) {
   );
 }
 
-function Bell({ submissions }) {
+function Bell({ submissions, base }) {
   const [open, setOpen] = useState(false);
   const news = submissions.filter((s) => ['approved', 'rejected', 'needs_info'].includes(s.status)).slice(0, 3);
   const TEXT = {
@@ -80,7 +80,7 @@ function Bell({ submissions }) {
           {news.length === 0 && <p className="sm mut">Nothing new yet.</p>}
           <div className="stack" style={{ gap: '8px' }}>
             {news.map((s) => (
-              <Link key={s.id} href={`/dashboard/videos/${s.id}`} className="note2" onClick={() => setOpen(false)}>
+              <Link key={s.id} href={`${base}/videos/${s.id}`} className="note2" onClick={() => setOpen(false)}>
                 <Icon name={s.status === 'approved' ? 'd-check' : 'd-flag'} />
                 <div>
                   <b>{TEXT[s.status][0]}</b>
@@ -97,13 +97,62 @@ function Bell({ submissions }) {
   );
 }
 
-export default function DashboardShell({ children }) {
+/* shown in "view as" mode when the team link can't be used */
+function ViewGate({ reason }) {
+  return (
+    <div className="page">
+      <SiteNav />
+      <div className="gatewrap">
+        <div className="gatecard">
+          <div className="gatering">
+            <Icon name="d-lock" className="lockart" />
+          </div>
+          <h2>{reason === 'denied' ? 'Only for the Maverick team.' : 'Open this from Maverick Admin.'}</h2>
+          <p>
+            {reason === 'denied'
+              ? 'This view is for people with a Maverick permission in tools.dubuddy.in.'
+              : reason === 'expired'
+                ? 'This view expired after an hour. Open it again from tools.dubuddy.in → Maverick Admin → Creators → Dashboard.'
+                : 'Go to tools.dubuddy.in → Maverick Admin → Creators, and click Dashboard next to the creator.'}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* viewAs = a creator's id: the Maverick team sees that creator's dashboard, read only,
+   with their own tools.dubuddy.in login (handed over by the admin space's Dashboard button) */
+export default function DashboardShell({ children, viewAs }) {
   const router = useRouter();
   const path = usePathname();
   const [st, setSt] = useState({ loading: true });
   const [profileOpen, setProfileOpen] = useState(false);
 
+  const base = viewAs ? `/view/${viewAs}` : '/dashboard';
+
   const load = useCallback(async () => {
+    if (viewAs) {
+      const sb = getViewerSupabase();
+      if (!sb) return setSt({ loading: false, user: null, viewGate: 'token' });
+      const staff = await sb.rpc('maverick_is_staff');
+      if (staff.error) return setSt({ loading: false, user: null, viewGate: /jwt|expired|401/i.test(staff.error.message || '') ? 'expired' : 'token' });
+      if (!staff.data) return setSt({ loading: false, user: null, viewGate: 'denied' });
+      const [c, s, p] = await Promise.all([
+        sb.from('maverick_creators').select('*').eq('id', viewAs).maybeSingle(),
+        sb.from('maverick_submissions').select('*').eq('creator_id', viewAs).order('created_at', { ascending: false }),
+        sb.from('maverick_payouts').select('*').eq('creator_id', viewAs).order('created_at', { ascending: false }),
+      ]);
+      setSt({
+        loading: false,
+        user: { id: viewAs, phone: c.data && c.data.phone },
+        creator: c.data || { id: viewAs },
+        submissions: s.data || [],
+        payouts: p.data || [],
+        error: c.error || s.error || p.error || null,
+      });
+      return;
+    }
     const sb = getSupabase();
     if (!sb) {
       setSt({ loading: false, user: null, notConfigured: true });
@@ -132,7 +181,7 @@ export default function DashboardShell({ children }) {
       payouts: p.data || [],
       error: c.error || s.error || p.error || null,
     });
-  }, [router]);
+  }, [router, viewAs]);
 
   useEffect(() => {
     load();
@@ -145,11 +194,15 @@ export default function DashboardShell({ children }) {
       </div>
     );
   }
+  if (st.viewGate) return <ViewGate reason={st.viewGate} />;
   if (!st.user) return <Gate notConfigured={st.notConfigured} />;
 
   const pending = st.payouts.filter((x) => x.status === 'pending').reduce((a, x) => a + Number(x.amount || 0), 0);
   const name = st.creator.full_name || '';
-  const missing = profileMissing(st.creator);
+  const missing = !viewAs && profileMissing(st.creator);
+  const side = viewAs
+    ? [{ href: base, icon: 'd-flag', label: 'Overview' }, { href: `${base}/payouts`, icon: 'd-coin', label: 'Payouts' }]
+    : SIDE;
 
   async function logout() {
     await getSupabase().auth.signOut();
@@ -157,7 +210,7 @@ export default function DashboardShell({ children }) {
   }
 
   return (
-    <DashCtx.Provider value={{ ...st, reload: load, profileMissing: missing, openProfile: () => setProfileOpen(true) }}>
+    <DashCtx.Provider value={{ ...st, reload: load, base, readOnly: !!viewAs, profileMissing: missing, openProfile: () => setProfileOpen(true) }}>
       <div className="page">
         <div className="nav">
           <Link href="/" className="logo">
@@ -170,18 +223,18 @@ export default function DashboardShell({ children }) {
             <Link href="/">Home</Link>
             <Link href="/how-it-works">How it works</Link>
             <Link href="/help">Help</Link>
-            <Link href="/dashboard" style={{ color: 'var(--coral)', fontWeight: 600 }}>
+            <Link href={base} style={{ color: 'var(--coral)', fontWeight: 600 }}>
               Dashboard
             </Link>
           </div>
           <div className="right navright">
-            <Bell submissions={st.submissions} />
+            <Bell submissions={st.submissions} base={base} />
             <div className="wallet-pill" title="Pending payout">
               <Icon name="d-wallet" style={{ width: '20px', height: '20px', color: 'var(--coral)' }} />
               <span className="tnum">{money(pending)}</span>
               <span className="plab">pending</span>
             </div>
-            <button className="avatar" onClick={() => setProfileOpen(true)} aria-label="My profile" title="My profile">
+            <button className="avatar" onClick={() => !viewAs && setProfileOpen(true)} aria-label="My profile" title={viewAs ? name : 'My profile'}>
               {(name[0] || 'M').toUpperCase()}
             </button>
           </div>
@@ -189,19 +242,30 @@ export default function DashboardShell({ children }) {
         <div className="dash">
           <aside className="side">
             <nav>
-              {SIDE.map((s) => (
+              {side.map((s) => (
                 <Link key={s.href} href={s.href} className={path === s.href ? 'on' : ''}>
                   <Icon name={s.icon} className="thin" />
                   {s.label}
                 </Link>
               ))}
-              <a onClick={logout} role="button">
-                <Icon name="d-person" className="thin" />
-                Log out
-              </a>
+              {!viewAs && (
+                <a onClick={logout} role="button">
+                  <Icon name="d-person" className="thin" />
+                  Log out
+                </a>
+              )}
             </nav>
           </aside>
           <div className="dmain">
+            {viewAs && (
+              <div className="alert" style={{ marginBottom: '24px' }}>
+                <Icon name="d-eye" style={{ color: 'var(--coral)' }} />
+                <div>
+                  <b>You&apos;re viewing {name || 'this creator'}&apos;s dashboard as the Maverick team.</b>
+                  <p>Exactly what they see, read only. Nothing here can be changed.</p>
+                </div>
+              </div>
+            )}
             {st.error && (
               <div className="alert err" style={{ marginBottom: '24px' }}>
                 <Icon name="d-alert" style={{ color: 'var(--no)' }} />

@@ -91,14 +91,14 @@ function Reply({ sub, onSent }) {
 
 export default function VideoPage() {
   const { id } = useParams();
-  const { creator, submissions, payouts, reload } = useDash();
+  const { creator, submissions, payouts, reload, base, readOnly } = useDash();
   const sub = submissions.find((s) => String(s.id) === String(id));
 
   if (!sub) {
     return (
       <div className="empty">
         <p className="md">We could not find this video.</p>
-        <Link href="/dashboard" className="btn sm mt">
+        <Link href={base} className="btn sm mt">
           Back to my videos
         </Link>
       </div>
@@ -154,9 +154,11 @@ export default function VideoPage() {
               <p className="sm mut">Once it is approved, publish it and keep it live for {T.day30} days.</p>
             </div>
           </div>
-          <Link href="/dashboard/submit" className="btn lg">
-            Submit another
-          </Link>
+          {!readOnly && (
+            <Link href="/dashboard/submit" className="btn lg">
+              Submit another
+            </Link>
+          )}
         </div>
       </>
     );
@@ -173,9 +175,11 @@ export default function VideoPage() {
               Make the change, then send it again as a fresh submission from Submit a video.
             </p>
           </div>
-          <Link href="/dashboard/submit" className="btn lg" style={{ marginLeft: 'auto' }}>
-            Fix and resubmit
-          </Link>
+          {!readOnly && (
+            <Link href="/dashboard/submit" className="btn lg" style={{ marginLeft: 'auto' }}>
+              Fix and resubmit
+            </Link>
+          )}
         </div>
         <Track
           steps={[
@@ -212,7 +216,7 @@ export default function VideoPage() {
           </div>
         </div>
         <div className="two mt" style={{ gridTemplateColumns: '1.2fr .8fr', alignItems: 'start' }}>
-          <Reply sub={sub} onSent={reload} />
+          {readOnly ? <div className="card soft"><b>Waiting for the creator&apos;s reply.</b></div> : <Reply sub={sub} onSent={reload} />}
           <div className="alert info" style={{ alignItems: 'center' }}>
             <Icon name="d-clock" style={{ color: 'var(--blue)' }} />
             <div>
@@ -242,7 +246,7 @@ export default function VideoPage() {
               : `Keep it live. Your bonus is released ${T.bonusDays} after publishing, based on the views it collects.`}
           </p>
         </div>
-        {st.key === 'approved' && (
+        {!readOnly && st.key === 'approved' && (
           <Link href="/dashboard" className="btn lg" style={{ marginLeft: 'auto' }}>
             Add published link
           </Link>
@@ -280,9 +284,11 @@ export default function VideoPage() {
               <p>Delete or go private before then and the bonus is void and the account is flagged.</p>
             </div>
           </div>
-          <Link href="/dashboard/submit" className="btn lg">
-            Submit another
-          </Link>
+          {!readOnly && (
+            <Link href="/dashboard/submit" className="btn lg">
+              Submit another
+            </Link>
+          )}
         </div>
       </div>
     </>

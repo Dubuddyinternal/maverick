@@ -91,7 +91,7 @@ function PublishBox({ sub, onClose, onDone }) {
 }
 
 export default function DashboardPage() {
-  const { creator, submissions, payouts, reload } = useDash();
+  const { creator, submissions, payouts, reload, base, readOnly } = useDash();
   const [info, setInfo] = useState(null);
   const [publishing, setPublishing] = useState(null);
   const first = (creator.full_name || '').split(' ')[0];
@@ -108,7 +108,7 @@ export default function DashboardPage() {
         <div className="upinote">
           <Icon name="d-upi" />
           <span>Please save your UPI ID in the Payouts section.</span>
-          <Link href="/dashboard/payouts" className="btn sm">
+          <Link href={`${base}/payouts`} className="btn sm">
             Open Payouts
           </Link>
         </div>
@@ -125,9 +125,11 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-        <Link href="/dashboard/submit" className="btn lg" style={{ marginLeft: 'auto' }}>
-          Submit a video
-        </Link>
+        {!readOnly && (
+          <Link href="/dashboard/submit" className="btn lg" style={{ marginLeft: 'auto' }}>
+            Submit a video
+          </Link>
+        )}
       </div>
 
       <PayoutCards payouts={payouts} />
@@ -145,9 +147,11 @@ export default function DashboardPage() {
             Film one, paste the Drive link, and it shows up here. Your first {T.base} is one video away.
           </p>
           <div className="row" style={{ justifyContent: 'center', marginTop: '20px' }}>
-            <Link href="/dashboard/submit" className="btn">
-              Submit my first video
-            </Link>
+            {!readOnly && (
+              <Link href="/dashboard/submit" className="btn">
+                Submit my first video
+              </Link>
+            )}
             <Link href="/how-it-works" className="linkbtn" style={{ color: 'var(--coral)' }}>
               What to film →
             </Link>
@@ -181,12 +185,12 @@ export default function DashboardPage() {
                     key={s.id}
                     style={st.key === 'approved' ? { cursor: 'pointer' } : undefined}
                     onClick={(e) => {
-                      if (st.key === 'approved' && !e.target.closest('.infobtn, .infopop, a')) setPublishing(s);
+                      if (!readOnly && st.key === 'approved' && !e.target.closest('.infobtn, .infopop, a')) setPublishing(s);
                     }}
                   >
                     <td className="tnum">{submissions.length - i}</td>
                     <td>
-                      <Link href={`/dashboard/videos/${s.id}`} style={{ fontWeight: 600 }}>
+                      <Link href={`${base}/videos/${s.id}`} style={{ fontWeight: 600 }}>
                         {s.title}
                       </Link>
                     </td>

@@ -8,8 +8,8 @@ import { useDash } from '@/components/DashboardShell';
 import { getSupabase } from '@/lib/supabase';
 import { T, fmtDate, fmtShort, money } from '@/lib/config';
 
-function UpiCard({ creator, onSaved }) {
-  const [editing, setEditing] = useState(!creator.upi_id);
+function UpiCard({ creator, onSaved, readOnly }) {
+  const [editing, setEditing] = useState(!readOnly && !creator.upi_id);
   const [upi, setUpi] = useState(creator.upi_id || '');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -49,7 +49,7 @@ function UpiCard({ creator, onSaved }) {
           Every payout goes to this ID. This is the only place it is saved.
         </p>
       </div>
-      {editing ? (
+      {readOnly ? null : editing ? (
         <button className="btn sm" style={{ marginLeft: 'auto' }} onClick={save} disabled={busy}>
           {busy ? 'Saving…' : 'Save'}
         </button>
@@ -63,7 +63,7 @@ function UpiCard({ creator, onSaved }) {
 }
 
 export default function PayoutsPage() {
-  const { creator, payouts, reload } = useDash();
+  const { creator, payouts, reload, readOnly } = useDash();
   const t = payoutTotals(payouts);
   const history = payouts.filter((p) => p.status === 'paid').sort((a, b) => String(b.paid_at).localeCompare(String(a.paid_at)));
 
@@ -81,7 +81,7 @@ export default function PayoutsPage() {
       <PayoutCards payouts={payouts} />
 
       <div className="two mt" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <UpiCard key={creator.upi_id || 'none'} creator={creator} onSaved={reload} />
+        <UpiCard key={creator.upi_id || 'none'} creator={creator} onSaved={reload} readOnly={readOnly} />
         <div className="card row" style={{ background: 'var(--tint)' }}>
           <Icon name="d-cal" style={{ width: '62px', height: '62px', color: 'var(--coral)', flex: 'none' }} />
           <div>
